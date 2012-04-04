@@ -1,5 +1,9 @@
-import urllib,json,time
-import sys,os,pickle
+import urllib
+import json
+import time
+import sys
+import os
+import pickle
 
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
@@ -9,18 +13,11 @@ FAIL = '\033[91m'
 ENDC = '\033[0m'
 
 
-try:
-    import pyximport; pyximport.install()
-    from naive_bayes_cython import MyNaiveBayesClassifier
-    print "Loaded cython version"
-except:
-    from naive_bayes import MyNaiveBayesClassifier
-    print "Failed to load cython version.. Downgrading to python version"
-
+from naive_bayes import MyNaiveBayesClassifier
 
 def main():
     os.system("clear")
-    print "Sentiment Analysis 0.01 alpha. (c) Luca Giacomel. Disclaimer: this very simple algorithm wont probably work, but it might be worth a try."
+    print "Sentiment Analysis by Luca Giacomel. Disclaimer: this very simple algorithm wont probably work, but it might be worth a try."
     
     def update_progress(progress,current_operation_message,p):
         df=2 #dimension factor, len of the graph = 100/df

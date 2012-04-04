@@ -1,6 +1,8 @@
-import math,re
+import math
+
 
 def to_alphanum(s):
+    import re
     pattern = re.compile('[\W_]+')
     return pattern.sub('', s)
 
