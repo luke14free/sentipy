@@ -24,6 +24,8 @@ def main():
         sys.stdout.write('\r[{0}{1}] {2}% (Page: {4}) Current operation: {3}\r\r'.format('#'*(progress/df)," "*(100/df-(progress/df)), progress,current_operation_message,p))
         sys.stdout.flush()
     
+    load_from_hd="n"
+    
     if os.path.exists("/tmp/db.bin") and os.path.exists("/tmp/neg.tweets") and os.path.exists("/tmp/pos.tweets"):
         proceed=raw_input("I found some tweets already stored, do you want me to use them [y=Yes | n=No | a=Append]? [y/N/a] ").lower()
         while proceed not in ["","y","n","a"]:
