@@ -3,7 +3,6 @@ import json
 import time
 import sys
 import os
-import pickle
 
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
@@ -13,7 +12,7 @@ FAIL = '\033[91m'
 ENDC = '\033[0m'
 
 
-from naive_bayes import MyNaiveBayesClassifier
+from naive_bayes import NaiveBayesClassifier
 
 def main():
     os.system("clear")
@@ -34,15 +33,15 @@ def main():
             
     if load_from_hd=="y" or load_from_hd=="":
         test_tweets=[]
-        db=pickle.load(open("/tmp/db.bin","rb"))
-        print "Done. Read a db of %s words" % len(db)
+        nb=NaiveBayesClassifier(db_path="/tmp/db.bin",categories=['positive','negative'])
+        print "Done. Read a db of %s words" % len(nb.db)
         search_value=raw_input("What keyword do you want to use to perform the analysis? (you can use @ # :) :( as special operators) ")
         print "Downloading 30 tweets for keywords %s.." % search_value
         z=json.loads(urllib.urlopen("http://search.twitter.com/search.json?q=%s&rpp=30&lang=en" % (urllib.quote(search_value))).read())
         print "Done."
         for m in z['results']:
             test_tweets.append(m['text'])
-        z=MyNaiveBayesClassifier(db=db,categories=['positive','negative'])
+        
                     
     elif load_from_hd=="n" or load_from_hd=="a":
         pages_to_load=raw_input("How many pages should I load? [default=20] ")
@@ -65,7 +64,6 @@ def main():
         for p in range(1,pages_to_load+1):
             perc=int(float(p*100)/pages_to_load)
             isleep=0
-            #update_progress(perc, "Loading page..",p)
             cycle=True
             while 1:
                 try:
@@ -111,25 +109,25 @@ def main():
         for m in z['results']:
             test_tweets.append(m['text'])
         print "Training the classifier. This might take a while, grab a coffe while I work."
-        j=MyNaiveBayesClassifier()
-        z=j.train(pos_tweets[:index]+neg_tweets[:index],['negative','positive'])
-        pickle.dump(z.db,open("/tmp/db.bin","wb"))
+
+        nb=NaiveBayesClassifier(db={},categories=['negative','positive'])
+        nb.train(pos_tweets[:index]+neg_tweets[:index])        
         
         print "Done. Training based on a set of %s elements took %s seconds." % (index*2,time.time()-training_start)
     
     for tx in test_tweets:
         print "Tweet: "+OKBLUE+tx+ENDC
-        r=z.classify(tx.lower())
-        if r[0]=="positive" and r[1]>.2:
-            print "Result: "+OKGREEN+r[0]+" (accuracy: "+str(r[1])+")"+ENDC
-        elif r[0]=="negative" and r[1]>.2:
-            print "Result: "+FAIL+r[0]+" (accuracy: "+str(r[1])+")"+ENDC
-        else:
-            print "Result: "+WARNING+"neutral (was %s with accuracy %s)" % (r[0],r[1]) +ENDC
+        r=nb.classify(tx.lower())
+        if r=="positive":
+            print "Result: "+OKGREEN+r+ENDC
+        elif r=="negative":
+            print "Result: "+FAIL+r+ENDC
+        #else:
+        #print "Result: "+WARNING+"neutral (was %s with accuracy %s)" % (r[0],r[1]) +ENDC
             
-    most_informative=sorted(z.db.keys(),key=lambda x: float(z.db[x][True])/(z.db[({'positive':'negative','negative':'positive'}[x[0]],x[1])][True]+1),reverse=True)[:30]
-    for k in most_informative:
-        print "Contained ratio: %s : 1 | Word: %s - Sentiment: %s" %(z.db[k][True]-z.db[({'positive':'negative','negative':'positive'}[k[0]],k[1])][True],k[1],k[0])
-        
+    nb.save_to_hard_disk()
+    
+    nb.show_most_informative()
+    
 if __name__=="__main__":
     main()
