@@ -54,7 +54,7 @@ def main():
                 pages_to_load=min(10,int(pages_to_load))
                 break
             except:
-                pages_to_load=raw_input("How many pages of tweets should I load? [default=20] ")
+                pages_to_load=raw_input("How many pages of tweets should I load (max 10)? [default=10] ")
         
         if load_from_hd=="a":
             neg_tweets = list(c.execute("SELECT * FROM tweets WHERE sentiment = 0"))
