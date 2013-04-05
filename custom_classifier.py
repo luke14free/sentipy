@@ -187,8 +187,8 @@ class Classifier:
         ax.spines['top'].set_color('none')
         ax.xaxis.set_ticks_position('bottom')
         ax.yaxis.set_ticks_position('left')
-        ax.set_xlim(-3,3)
-        ax.set_ylim(-2,2)
+        ax.set_xlim(-1*(1024/840),1*(1024/840))
+        ax.set_ylim(-1,1)
 
 
         it = 0
