@@ -54,13 +54,13 @@ def main():
         
                     
     elif load_from_hd=="n" or load_from_hd=="a":
-        pages_to_load=raw_input("How many pages of tweets should I load? [default=20] ")
+        pages_to_load=raw_input("How many pages of tweets should I load (max 10)? [default=10] ")
         while 1:
             try:
                 if pages_to_load=="":
-                    pages_to_load=20
+                    pages_to_load=10
                     break
-                pages_to_load=int(pages_to_load)
+                pages_to_load=min(10,int(pages_to_load))
                 break
             except:
                 pages_to_load=raw_input("How many pages of tweets should I load? [default=20] ")

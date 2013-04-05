@@ -15,6 +15,7 @@ from sklearn.externals import joblib
 from sklearn.feature_extraction.text import CountVectorizer
 from matplotlib.mlab import PCA    
 import matplotlib.pyplot as plt
+import matplotlib
 import pylab as pl
 import numpy as np
 
@@ -187,13 +188,13 @@ class Classifier:
         ax.spines['top'].set_color('none')
         ax.xaxis.set_ticks_position('bottom')
         ax.yaxis.set_ticks_position('left')
-        ax.set_xlim(-1*(1024/840),1*(1024/840))
-        ax.set_ylim(-1,1)
-
-
+        ax.set_xlim(-2*(1024/840),2*(1024/840))
+        ax.set_ylim(-2,2)
+        matplotlib.rcParams.update({'font.size': 6})
+       
         it = 0
         for word,_ in most_common_words:
-            ax.text(s=word, x = results[it][0], y = results[it][1])
+            ax.text(s=word, x = results[it][0], y = results[it][1], fontsize=6)
             it+=1
             
         from itertools import cycle
