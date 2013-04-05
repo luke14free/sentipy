@@ -215,6 +215,12 @@ class Classifier:
         
         print "Variance explained by the PCA components: %s " % pca_results.fracs
         plt.show()
+        try:
+            plt.savefig("/var/partners/static/mca.png")
+            print "Analysis here: http://109.169.46.22/static/mca.png"
+        except:
+            pass
+        
 
     def save_to_hard_disk(self,db_path=None):
         #Not implemented yet.
