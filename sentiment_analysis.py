@@ -130,7 +130,10 @@ def main():
         print "Done. Training based on a set of %s elements took %s seconds." % (index*2,time.time()-training_start)
     
     for tx in test_tweets:
-        print "Tweet: "+OKBLUE+tx+ENDC
+        try:
+            print "Tweet: "+OKBLUE+tx+ENDC
+        except UnicodeEncodeError:
+            pass #Tweet contains problematic chars
         r=nb.classify(tx.lower())
         if r.startswith("positive"):
             print "Result: "+OKGREEN+r+ENDC
