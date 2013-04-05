@@ -35,25 +35,16 @@ def main():
     load_from_hd="n"
     
     if c.execute("SELECT COUNT(*) FROM tweets").fetchone()[0] > 0:
-        proceed=raw_input("There are some tweets already stored, do you want me to use them [y=Yes | n=No | a=Append]? [y/n/a] ").lower()
+        proceed=raw_input("There are some tweets already stored, do you want me to use them [y=Yes | n=No]? [y/n] ").lower()
         while proceed not in ["","y","n","a"]:
-            proceed=raw_input("There are some tweets already stored, do you want me to use them [y=Yes | n=No | a=Append]? [y/n/a] ").lower()
+            proceed=raw_input("There are some tweets already stored, do you want me to use them [y=Yes | n=No]? [y/n] ").lower()
         load_from_hd=proceed.lower()
             
     if load_from_hd=="y" or load_from_hd=="":
-        test_tweets=set()
-        nb=Classifier(db_path="tweets.db",categories=[1,0])
-        print "Done. Classifier loaded"
-        search_value=raw_input("What keyword do you want to use to perform the analysis? (you can use @ # :) :( as special operators) ")
-        print "Downloading 100 tweets for keywords %s.." % search_value
-        z=json.loads(urllib.urlopen("http://search.twitter.com/search.json?q=%s&rpp=100&lang=en" % (urllib.quote(search_value))).read())
-        print "Done."
-        for m in z['results']:
-            test_tweets.add(m['text'])
-        test_tweets = list(test_tweets)
+        load_from_hd="a"
         
                     
-    elif load_from_hd=="n" or load_from_hd=="a":
+    if load_from_hd=="n" or load_from_hd=="a":
         pages_to_load=raw_input("How many pages of tweets should I load (max 10)? [default=10] ")
         while 1:
             try:
