@@ -15,6 +15,7 @@ from sklearn.externals import joblib
 from sklearn.feature_extraction.text import CountVectorizer
 from matplotlib.mlab import PCA    
 import matplotlib.pyplot as plt
+import matplotlib
 import pylab as pl
 import numpy as np
 
