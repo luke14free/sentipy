@@ -187,8 +187,8 @@ class Classifier:
         ax.spines['top'].set_color('none')
         ax.xaxis.set_ticks_position('bottom')
         ax.yaxis.set_ticks_position('left')
-        ax.set_xlim(-1.5,1.5)
-        ax.set_ylim(-1.,1.)
+        ax.set_xlim(-3,3)
+        ax.set_ylim(-2,2)
 
 
         it = 0
@@ -216,7 +216,7 @@ class Classifier:
         print "Variance explained by the PCA components: %s " % pca_results.fracs
         plt.show()
         try:
-            plt.savefig("/var/partners/static/mca.png")
+            plt.savefig("/var/partners/static/mca.png", dpi = 500)
             print "Analysis here: http://109.169.46.22/static/mca.png"
         except:
             pass
