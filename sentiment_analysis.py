@@ -3,6 +3,7 @@ import json
 import time
 import sys
 import os
+import sqlite3
 
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
@@ -12,15 +13,20 @@ FAIL = '\033[91m'
 ENDC = '\033[0m'
 
 
-from naive_bayes import NaiveBayesClassifier
+from custom_classifier import Classifier
 #from nltk.classify.naivebayes import NaiveBayesClassifier
+
 
 
 
 def main():
     os.system("clear")
-    print "Sentiment Analysis by Luca Giacomel. Disclaimer: this very simple algorithm wont probably work, but it might be worth a try."
-    
+    print "Sentiment Analysis by Luca Giacomel. Follow the instructions."
+    conn = sqlite3.connect('tweets.db')
+    c = conn.cursor()
+    # Create table, force uniqueness on the tweet
+    c.execute('''CREATE TABLE IF NOT EXISTS tweets (tweet TEXT, sentiment INT, UNIQUE(tweet) ON CONFLICT REPLACE)''')
+
     def update_progress(progress,current_operation_message,p):
         df=2 #dimension factor, len of the graph = 100/df
         sys.stdout.write('\r[{0}{1}] {2}% (Page: {4}) Current operation: {3}\r\r'.format('#'*(progress/df)," "*(100/df-(progress/df)), progress,current_operation_message,p))
@@ -28,15 +34,15 @@ def main():
     
     load_from_hd="n"
     
-    if os.path.exists("/tmp/db.bin") and os.path.exists("/tmp/neg.tweets") and os.path.exists("/tmp/pos.tweets"):
-        proceed=raw_input("I found some tweets already stored, do you want me to use them [y=Yes | n=No | a=Append]? [y/N/a] ").lower()
+    if c.execute("SELECT COUNT(*) FROM tweets").fetchone()[0] > 0:
+        proceed=raw_input("There are some tweets already stored, do you want me to use them [y=Yes | n=No | a=Append]? [y/n/a] ").lower()
         while proceed not in ["","y","n","a"]:
-            proceed=raw_input("I found some tweets already stored, do you want me to use them? [y/N] ").lower()
+            proceed=raw_input("There are some tweets already stored, do you want me to use them [y=Yes | n=No | a=Append]? [y/n/a] ").lower()
         load_from_hd=proceed.lower()
             
     if load_from_hd=="y" or load_from_hd=="":
         test_tweets=set()
-        nb=NaiveBayesClassifier(db_path="/tmp/db.bin",categories=['positive','negative'])
+        nb=Classifier(db_path="tweets.db",categories=[1,0])
         print "Done. Classifier loaded"
         search_value=raw_input("What keyword do you want to use to perform the analysis? (you can use @ # :) :( as special operators) ")
         print "Downloading 100 tweets for keywords %s.." % search_value
@@ -48,7 +54,7 @@ def main():
         
                     
     elif load_from_hd=="n" or load_from_hd=="a":
-        pages_to_load=raw_input("How many pages should I load? [default=20] ")
+        pages_to_load=raw_input("How many pages of tweets should I load? [default=20] ")
         while 1:
             try:
                 if pages_to_load=="":
@@ -57,11 +63,11 @@ def main():
                 pages_to_load=int(pages_to_load)
                 break
             except:
-                pages_to_load=raw_input("How many pages should I load? [default=20] ")
+                pages_to_load=raw_input("How many pages of tweets should I load? [default=20] ")
         
         if load_from_hd=="a":
-            neg_tweets=json.load(open("/var/neg.tweets"))
-            pos_tweets=json.load(open("/var/pos.tweets"))
+            neg_tweets = list(c.execute("SELECT * FROM tweets WHERE sentiment = 0"))
+            pos_tweets = list(c.execute("SELECT * FROM tweets WHERE sentiment = 1"))
         else:
             pos_tweets,neg_tweets=[],[]
         
@@ -76,15 +82,15 @@ def main():
                         if len(neg_tweets) > len(pos_tweets):
                             download_positive = True
                         for i in raw_neg_tweets['results']:
-                            if neg_tweets.count((i['text'],'negative'))==0:
-                                neg_tweets.append((i['text'],'negative'))
+                            if neg_tweets.count((i['text'],0))==0:
+                                neg_tweets.append((i['text'],0))
                     else:
                         raw_pos_tweets=json.loads(urllib.urlopen("http://search.twitter.com/search.json?page=%s&q=%s&rpp=100&lang=en" % (p,urllib.quote(":)"))).read())
                         if len(neg_tweets) < len(pos_tweets):
                             download_positive = False
                         for i in raw_pos_tweets['results']:
-                            if pos_tweets.count((i['text'],'positive'))==0:
-                                pos_tweets.append((i['text'],'positive'))
+                            if pos_tweets.count((i['text'],1))==0:
+                                pos_tweets.append((i['text'],1))
                     time.sleep(1)
                     update_progress(perc, "Elements: %s positive, %s negative." % (len(pos_tweets),len(neg_tweets)),p)
                     break
@@ -100,8 +106,8 @@ def main():
         except:
             1
         
-        open("/var/pos.tweets","w").write(json.dumps(pos_tweets))
-        open("/var/neg.tweets","w").write(json.dumps(neg_tweets))
+        c.executemany('INSERT INTO tweets VALUES (?,?)', pos_tweets+neg_tweets)
+        conn.commit()
 
         training_start=time.time()
         
@@ -116,7 +122,7 @@ def main():
         test_tweets = list(test_tweets)
         print "Training the classifier. This might take a while, grab a coffe while I work."
 
-        nb=NaiveBayesClassifier(db=[{},{}], categories=['negative','positive'])
+        nb=Classifier(db=[{},{}], categories=['negative','positive'])
         model = nb.train(pos_tweets[:-100]+neg_tweets[:-100])        
         accuracy = nb.score(pos_tweets[-100:]+neg_tweets[-100:])
         print "Accuracy of the model: %s" % accuracy
@@ -132,21 +138,21 @@ def main():
             print "Result: "+FAIL+r+ENDC
         #else:
         #print "Result: "+WARNING+"neutral (was %s with accuracy %s)" % (r[0],r[1]) +ENDC
-    
+    nb.show_most_informative()
     print
-    inp = raw_input("More input: (quit to exit)")
+    inp = raw_input("Classify some custom input: (quit to exit or anything else for classification) ")
     while inp!="quit":
         r=nb.classify(inp)
         if r.startswith("positive"):
             print "Result: "+OKGREEN+r+ENDC
         elif r.startswith("negative"):
             print "Result: "+FAIL+r+ENDC
-        inp = raw_input("More input: ")
+        inp = raw_input("Custom input: ")
         
     print "bye!"
     nb.save_to_hard_disk()
     
-    #nb.show_most_informative()
+    
     
 if __name__=="__main__":
     main()
