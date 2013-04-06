@@ -219,7 +219,7 @@ class Classifier:
             pl.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col,
                     markeredgecolor='k', markersize=14)
             for x in X[class_members]:
-                if filtered_results.count(list(x)) > 0:
+                if -x_plot_interval/2 < x[0] < x_plot_interval/2 and -x_plot_interval/(2*(1980/1024)) < x[1] < x_plot_interval/(2*(1980/1024)):
                     pl.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], col)
     
         
