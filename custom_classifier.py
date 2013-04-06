@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib_utils import center_spines
 import pylab as pl
+import random
 import numpy as np
 
 
@@ -205,22 +206,23 @@ class Classifier:
                 ax.text(s=word, x = results[it][0], y = results[it][1], fontsize=6)
             it+=1
             
-        from itertools import cycle
         cluster_centers_indices = af.cluster_centers_indices_
         labels = af.labels_
         X = results
         n_clusters_ = len(cluster_centers_indices)
 
-        colors = cycle('bgrcmykbgrcmykbgrcmykbgrcmyk')
+        sep = 1.0/n_clusters_
+        colors = [(i*sep,random.random(),random.random(),0.4) for i in range(n_clusters_)]
+        
         for k, col in zip(range(n_clusters_), colors):
             class_members = labels == k
             cluster_center = X[cluster_centers_indices[k]]
-            pl.plot(X[class_members, 0], X[class_members, 1], col + '.')
+            pl.plot(X[class_members, 0], X[class_members, 1], '.', color = col)
             pl.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col,
                     markeredgecolor='k', markersize=14)
             for x in X[class_members]:
                 if -x_plot_interval/2 < x[0] < x_plot_interval/2 and -x_plot_interval/(2*(1980/1024)) < x[1] < x_plot_interval/(2*(1980/1024)):
-                    pl.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], col)
+                    pl.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], color = col)
     
         
         print "Variance explained by the PCA components: %s " % pca_results.fracs
