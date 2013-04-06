@@ -202,7 +202,7 @@ class Classifier:
         it = 0
         for word,_ in most_common_words:
             if filtered_results.count(list(results[it])) > 0:
-                ax.text(s=word, x = results[it][0], y = results[it][1], fontsize=8)
+                ax.text(s=word, x = results[it][0], y = results[it][1], fontsize=6)
             it+=1
             
         from itertools import cycle
