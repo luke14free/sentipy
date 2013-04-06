@@ -14,10 +14,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
 from sklearn.feature_extraction.text import CountVectorizer
 from matplotlib.mlab import PCA    
+from scipy import percentile as scoreatpercentile
 import matplotlib.pyplot as plt
 import matplotlib
+from matplotlib_utils import center_spines
 import pylab as pl
 import numpy as np
+
 
 try:
     from collections import Counter
@@ -157,15 +160,13 @@ class Classifier:
         return ("positive (probability: %s)" if self.model.predict(elem)[0] == 1 else "negative (probability: %s)") % (prob)
     
     def show_most_informative(self):
-        #TODO: change
-        
         pos_counter = self.pos_counter
         neg_counter = self.neg_counter
         
         most_common_words = list(set(pos_counter.most_common(200) + neg_counter.most_common(200)))[:100]
         raw_cross_data = np.zeros((len(most_common_words),2))
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(15,10))
         ax = fig.add_subplot(111)
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         
@@ -180,21 +181,28 @@ class Classifier:
         results = pca_results.Y
         af = AffinityPropagation().fit(results)
 
-
-        
         ax.spines['left'].set_position('center')
         ax.spines['right'].set_color('none')
         ax.spines['bottom'].set_position('center')
         ax.spines['top'].set_color('none')
         ax.xaxis.set_ticks_position('bottom')
         ax.yaxis.set_ticks_position('left')
-        ax.set_xlim(-2*(1024/840),2*(1024/840))
-        ax.set_ylim(-2,2)
-        matplotlib.rcParams.update({'font.size': 6})
+        center_spines(ax)
+        
+        q1 = scoreatpercentile(results, 25)
+        q2 = scoreatpercentile(results, 75)
+        iqr = (q2 - q1)
+        filtered_results = [list(i) for i in results if (q1-iqr*1.5) < i[0] < (q2+iqr*1.5)] #Exclude outliers for the principal component
+        x_plot_interval = max(x[0] for x in filtered_results) - min(x[0] for x in filtered_results)
+        
+        ax.set_xlim(-x_plot_interval/2,x_plot_interval/2) #16:9
+        ax.set_ylim(-x_plot_interval/(2*(1980/1024)),+x_plot_interval/(2*(1980/1024)))
+        
        
         it = 0
         for word,_ in most_common_words:
-            ax.text(s=word, x = results[it][0], y = results[it][1], fontsize=6)
+            if filtered_results.count(list(results[it])) > 0:
+                ax.text(s=word, x = results[it][0], y = results[it][1], fontsize=8)
             it+=1
             
         from itertools import cycle
@@ -215,12 +223,14 @@ class Classifier:
     
         
         print "Variance explained by the PCA components: %s " % pca_results.fracs
-        plt.show()
+        
         try:
+            matplotlib.rcParams.update({'font.size': 6})
             plt.savefig("/var/partners/static/mca.png", dpi = 500)
             print "Analysis here: http://109.169.46.22/static/mca.png"
         except:
-            pass
+            matplotlib.rcParams.update({'font.size': 8})
+            plt.show()
         
 
     def save_to_hard_disk(self,db_path=None):

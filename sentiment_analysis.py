@@ -36,7 +36,7 @@ def main():
     
     if c.execute("SELECT COUNT(*) FROM tweets").fetchone()[0] > 0:
         proceed=raw_input("There are some tweets already stored, do you want me to use them [y=Yes | n=No]? [y/n] ").lower()
-        while proceed not in ["","y","n","a"]:
+        while proceed not in ["","y","n"]:
             proceed=raw_input("There are some tweets already stored, do you want me to use them [y=Yes | n=No]? [y/n] ").lower()
         load_from_hd=proceed.lower()
             
