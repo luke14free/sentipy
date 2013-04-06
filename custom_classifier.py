@@ -219,7 +219,8 @@ class Classifier:
             pl.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col,
                     markeredgecolor='k', markersize=14)
             for x in X[class_members]:
-                pl.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], col)
+                if x in filtered_results:
+                    pl.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], col)
     
         
         print "Variance explained by the PCA components: %s " % pca_results.fracs
