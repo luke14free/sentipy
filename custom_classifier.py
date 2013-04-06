@@ -219,7 +219,7 @@ class Classifier:
             pl.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col,
                     markeredgecolor='k', markersize=14)
             for x in X[class_members]:
-                if x in filtered_results:
+                if filtered_results.count(list(x)) > 0:
                     pl.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], col)
     
         
